@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
