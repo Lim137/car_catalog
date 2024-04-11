@@ -3,13 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 )
 
-type Car struct {
+type CarInfo struct {
 	RegNum string `json:"regNum"`
 	Mark   string `json:"mark"`
 	Model  string `json:"model"`
@@ -23,25 +22,22 @@ type People struct {
 	Patronymic string `json:"patronymic,omitempty"`
 }
 
-func getCarInfoFromApi(regNum string) Car {
+func getCarInfoFromApi(regNum string) (CarInfo, error) {
 	params := url.Values{}
 	params.Add("regNum", regNum)
 	apiUrl := os.Getenv("API_URL") + params.Encode()
 	response, err := http.Get(apiUrl)
 	if err != nil {
-		log.Println("Failed api request:", err)
+		return CarInfo{}, fmt.Errorf("failed api request: %v", err)
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		log.Println("Error", response.Status+":", response.Body)
-		return Car{}
+		return CarInfo{}, fmt.Errorf("error %s: %s", response.Status, response.Body)
 	}
-	var car Car
+	var car CarInfo
 	err = json.NewDecoder(response.Body).Decode(&car)
 	if err != nil {
-		log.Println("Couldn't decode response:", err)
-		return Car{}
+		return CarInfo{}, fmt.Errorf("couldn't decode response: %v", err)
 	}
-	fmt.Println(car)
-	return car
+	return car, nil
 }

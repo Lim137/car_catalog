@@ -41,6 +41,7 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+	router.Post("/", apiCfg.handlerCreateCars)
 	router.Delete("/{carId}", apiCfg.handlerDeleteCarById)
 	srv := &http.Server{
 		Handler: router,

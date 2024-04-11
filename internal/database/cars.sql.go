@@ -16,7 +16,7 @@ import (
 const createCar = `-- name: CreateCar :one
 INSERT INTO cars ( id, created_at, updated_at, reg_num, mark, model, year, owner_name, owner_surname, owner_patronymic )
 VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, created_at, updated_at, reg_num, mark, model, year, owner_name, owner_surname, owner_patronymic
+RETURNING id
 `
 
 type CreateCarParams struct {
@@ -32,7 +32,7 @@ type CreateCarParams struct {
 	OwnerPatronymic sql.NullString
 }
 
-func (q *Queries) CreateCar(ctx context.Context, arg CreateCarParams) (Car, error) {
+func (q *Queries) CreateCar(ctx context.Context, arg CreateCarParams) (uuid.UUID, error) {
 	row := q.db.QueryRowContext(ctx, createCar,
 		arg.ID,
 		arg.CreatedAt,
@@ -45,20 +45,9 @@ func (q *Queries) CreateCar(ctx context.Context, arg CreateCarParams) (Car, erro
 		arg.OwnerSurname,
 		arg.OwnerPatronymic,
 	)
-	var i Car
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.RegNum,
-		&i.Mark,
-		&i.Model,
-		&i.Year,
-		&i.OwnerName,
-		&i.OwnerSurname,
-		&i.OwnerPatronymic,
-	)
-	return i, err
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const deleteCarById = `-- name: DeleteCarById :exec
