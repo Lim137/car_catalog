@@ -41,8 +41,10 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
-	router.Post("/", apiCfg.handlerCreateCars)
-	router.Delete("/{carId}", apiCfg.handlerDeleteCarById)
+	carRouter := chi.NewRouter()
+	carRouter.Post("/", apiCfg.handlerCreateCars)
+	carRouter.Delete("/{carId}", apiCfg.handlerDeleteCarById)
+	router.Mount("/cars", carRouter)
 	srv := &http.Server{
 		Handler: router,
 		Addr:    ":" + portString,
