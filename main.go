@@ -44,6 +44,7 @@ func main() {
 	carRouter := chi.NewRouter()
 	carRouter.Post("/", apiCfg.handlerCreateCars)
 	carRouter.Delete("/{carId}", apiCfg.handlerDeleteCarById)
+	carRouter.Put("/{carId}", apiCfg.handlerUpdateCarById)
 	router.Mount("/cars", carRouter)
 	srv := &http.Server{
 		Handler: router,

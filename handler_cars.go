@@ -7,6 +7,7 @@ import (
 	"github.com/Lim137/car_catalog/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
+	"io"
 	"net/http"
 	"time"
 )
@@ -77,4 +78,82 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 		})
 	}
 	respondWithJSON(w, 200, addedCarsIds)
+}
+
+func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Request) {
+	carIdStr := chi.URLParam(r, "carId")
+	carId, err := uuid.Parse(carIdStr)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't parse car ID: %v", err))
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Couldn't read request body: %v", err))
+		return
+	}
+	var requestBody map[string]interface{}
+	err = json.Unmarshal(body, &requestBody)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Couldn't unmarshal request body: %v", err))
+		return
+	}
+	for key, value := range requestBody {
+		if key == "regNum" {
+			err := apiCfg.DB.UpdateRegNumById(r.Context(), database.UpdateRegNumByIdParams{ID: carId, RegNum: value.(string)})
+			if err != nil {
+				respondWithError(w, 500, fmt.Sprintf("Couldn't update car regNum in DB: %v", err))
+			}
+			continue
+		}
+		if key == "mark" {
+			err := apiCfg.DB.UpdateMarkById(r.Context(), database.UpdateMarkByIdParams{ID: carId, Mark: value.(string)})
+			if err != nil {
+				respondWithError(w, 500, fmt.Sprintf("Couldn't update car mark in DB: %v", err))
+			}
+			continue
+		}
+		if key == "model" {
+			err := apiCfg.DB.UpdateModelById(r.Context(), database.UpdateModelByIdParams{ID: carId, Model: value.(string)})
+			if err != nil {
+				respondWithError(w, 500, fmt.Sprintf("Couldn't update car model in DB: %v", err))
+			}
+			continue
+		}
+		if key == "year" {
+			err := apiCfg.DB.UpdateYearById(r.Context(), database.UpdateYearByIdParams{ID: carId, Year: int32(value.(float64))})
+			if err != nil {
+				respondWithError(w, 500, fmt.Sprintf("Couldn't update the year of the car in DB: %v", err))
+			}
+			continue
+		}
+		if key == "ownerName" {
+			err := apiCfg.DB.UpdateOwnerNameById(r.Context(), database.UpdateOwnerNameByIdParams{ID: carId, OwnerName: value.(string)})
+			if err != nil {
+				respondWithError(w, 500, fmt.Sprintf("Couldn't update car owner name in DB: %v", err))
+			}
+			continue
+		}
+		if key == "ownerSurname" {
+			err := apiCfg.DB.UpdateOwnerSurnameById(r.Context(), database.UpdateOwnerSurnameByIdParams{ID: carId, OwnerSurname: value.(string)})
+			if err != nil {
+				respondWithError(w, 500, fmt.Sprintf("Couldn't update car owner surname in DB: %v", err))
+			}
+			continue
+		}
+		if key == "ownerPatronymic" {
+			ownerPatronymic := sql.NullString{}
+			if value != "" {
+				ownerPatronymic.String = value.(string)
+				ownerPatronymic.Valid = true
+
+			}
+			err := apiCfg.DB.UpdateOwnerPatronymicById(r.Context(), database.UpdateOwnerPatronymicByIdParams{ID: carId, OwnerPatronymic: ownerPatronymic})
+			if err != nil {
+				respondWithError(w, 500, fmt.Sprintf("Couldn't update car owner patronymic in DB: %v", err))
+			}
+			continue
+		}
+	}
+	respondWithJSON(w, 200, "Car was successfully updated")
 }

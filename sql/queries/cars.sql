@@ -6,3 +6,38 @@ RETURNING id;
 -- name: DeleteCarById :exec
 DELETE FROM cars
 WHERE id = $1;
+
+-- name: UpdateRegNumById :exec
+UPDATE cars
+SET reg_num = $2, updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdateMarkById :exec
+UPDATE cars
+SET mark = $2, updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdateModelById :exec
+UPDATE cars
+SET model = $2, updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdateYearById :exec
+UPDATE cars
+SET year = $2, updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdateOwnerNameById :exec
+UPDATE cars
+SET owner_name = $2, updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdateOwnerSurnameById :exec
+UPDATE cars
+SET owner_surname = $2, updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdateOwnerPatronymicById :exec
+UPDATE cars
+SET owner_patronymic = $2, updated_at = NOW()
+WHERE id = $1;

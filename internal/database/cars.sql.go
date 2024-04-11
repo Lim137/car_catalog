@@ -59,3 +59,115 @@ func (q *Queries) DeleteCarById(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteCarById, id)
 	return err
 }
+
+const updateMarkById = `-- name: UpdateMarkById :exec
+UPDATE cars
+SET mark = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateMarkByIdParams struct {
+	ID   uuid.UUID
+	Mark string
+}
+
+func (q *Queries) UpdateMarkById(ctx context.Context, arg UpdateMarkByIdParams) error {
+	_, err := q.db.ExecContext(ctx, updateMarkById, arg.ID, arg.Mark)
+	return err
+}
+
+const updateModelById = `-- name: UpdateModelById :exec
+UPDATE cars
+SET model = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateModelByIdParams struct {
+	ID    uuid.UUID
+	Model string
+}
+
+func (q *Queries) UpdateModelById(ctx context.Context, arg UpdateModelByIdParams) error {
+	_, err := q.db.ExecContext(ctx, updateModelById, arg.ID, arg.Model)
+	return err
+}
+
+const updateOwnerNameById = `-- name: UpdateOwnerNameById :exec
+UPDATE cars
+SET owner_name = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateOwnerNameByIdParams struct {
+	ID        uuid.UUID
+	OwnerName string
+}
+
+func (q *Queries) UpdateOwnerNameById(ctx context.Context, arg UpdateOwnerNameByIdParams) error {
+	_, err := q.db.ExecContext(ctx, updateOwnerNameById, arg.ID, arg.OwnerName)
+	return err
+}
+
+const updateOwnerPatronymicById = `-- name: UpdateOwnerPatronymicById :exec
+UPDATE cars
+SET owner_patronymic = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateOwnerPatronymicByIdParams struct {
+	ID              uuid.UUID
+	OwnerPatronymic sql.NullString
+}
+
+func (q *Queries) UpdateOwnerPatronymicById(ctx context.Context, arg UpdateOwnerPatronymicByIdParams) error {
+	_, err := q.db.ExecContext(ctx, updateOwnerPatronymicById, arg.ID, arg.OwnerPatronymic)
+	return err
+}
+
+const updateOwnerSurnameById = `-- name: UpdateOwnerSurnameById :exec
+UPDATE cars
+SET owner_surname = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateOwnerSurnameByIdParams struct {
+	ID           uuid.UUID
+	OwnerSurname string
+}
+
+func (q *Queries) UpdateOwnerSurnameById(ctx context.Context, arg UpdateOwnerSurnameByIdParams) error {
+	_, err := q.db.ExecContext(ctx, updateOwnerSurnameById, arg.ID, arg.OwnerSurname)
+	return err
+}
+
+const updateRegNumById = `-- name: UpdateRegNumById :exec
+UPDATE cars
+SET reg_num = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateRegNumByIdParams struct {
+	ID     uuid.UUID
+	RegNum string
+}
+
+func (q *Queries) UpdateRegNumById(ctx context.Context, arg UpdateRegNumByIdParams) error {
+	_, err := q.db.ExecContext(ctx, updateRegNumById, arg.ID, arg.RegNum)
+	return err
+}
+
+const updateYearById = `-- name: UpdateYearById :exec
+UPDATE cars
+SET year = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateYearByIdParams struct {
+	ID   uuid.UUID
+	Year int32
+}
+
+func (q *Queries) UpdateYearById(ctx context.Context, arg UpdateYearByIdParams) error {
+	_, err := q.db.ExecContext(ctx, updateYearById, arg.ID, arg.Year)
+	return err
+}
