@@ -7,9 +7,59 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+const createCar = `-- name: CreateCar :one
+INSERT INTO cars ( id, created_at, updated_at, reg_num, mark, model, year, owner_name, owner_surname, owner_patronymic )
+VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, created_at, updated_at, reg_num, mark, model, year, owner_name, owner_surname, owner_patronymic
+`
+
+type CreateCarParams struct {
+	ID              uuid.UUID
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	RegNum          string
+	Mark            string
+	Model           string
+	Year            int32
+	OwnerName       string
+	OwnerSurname    string
+	OwnerPatronymic sql.NullString
+}
+
+func (q *Queries) CreateCar(ctx context.Context, arg CreateCarParams) (Car, error) {
+	row := q.db.QueryRowContext(ctx, createCar,
+		arg.ID,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.RegNum,
+		arg.Mark,
+		arg.Model,
+		arg.Year,
+		arg.OwnerName,
+		arg.OwnerSurname,
+		arg.OwnerPatronymic,
+	)
+	var i Car
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RegNum,
+		&i.Mark,
+		&i.Model,
+		&i.Year,
+		&i.OwnerName,
+		&i.OwnerSurname,
+		&i.OwnerPatronymic,
+	)
+	return i, err
+}
 
 const deleteCarById = `-- name: DeleteCarById :exec
 DELETE FROM cars
