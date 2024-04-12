@@ -45,6 +45,7 @@ func main() {
 	carRouter.Post("/", apiCfg.handlerCreateCars)
 	carRouter.Delete("/{carId}", apiCfg.handlerDeleteCarById)
 	carRouter.Put("/{carId}", apiCfg.handlerUpdateCarById)
+	carRouter.Get("/", apiCfg.handlerGetCars)
 	router.Mount("/cars", carRouter)
 	srv := &http.Server{
 		Handler: router,

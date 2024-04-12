@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -156,4 +157,51 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 		}
 	}
 	respondWithJSON(w, 200, "Car was successfully updated")
+}
+
+func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) {
+	url := r.URL
+	queryParams := url.Query()
+	regNum := queryParams.Get("regNum")
+	mark := queryParams.Get("mark")
+	model := queryParams.Get("model")
+	yearStr := queryParams.Get("year")
+	ownerName := queryParams.Get("ownerName")
+	ownerSurname := queryParams.Get("ownerSurname")
+	ownerPatronymicStr := queryParams.Get("ownerPatronymic")
+	ownerPatronymic := sql.NullString{}
+	if ownerPatronymicStr != "" {
+		ownerPatronymic.String = ownerPatronymicStr
+		ownerPatronymic.Valid = true
+
+	}
+	var year int
+	var err error
+	if yearStr == "" {
+		year = 0
+	} else {
+		year, err = strconv.Atoi(yearStr)
+		if err != nil {
+			respondWithError(w, 500, fmt.Sprintf("Couldn't parse year: %v", err))
+			return
+		}
+	}
+	cars, err := apiCfg.DB.GetCars(r.Context(), database.GetCarsParams{
+		RegNum:          regNum,
+		Mark:            mark,
+		Model:           model,
+		Year:            int32(year),
+		OwnerName:       ownerName,
+		OwnerSurname:    ownerSurname,
+		OwnerPatronymic: ownerPatronymic,
+	})
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Couldn't get cars from DB: %v", err))
+		return
+	}
+	if len(cars) == 0 {
+		respondWithJSON(w, 200, "Cars with such parameters not found")
+		return
+	}
+	respondWithJSON(w, 200, cars)
 }

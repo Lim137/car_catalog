@@ -41,3 +41,15 @@ WHERE id = $1;
 UPDATE cars
 SET owner_patronymic = $2, updated_at = NOW()
 WHERE id = $1;
+
+-- name: GetCars :many
+SELECT *
+FROM cars
+WHERE
+    (reg_num = $1 OR $1 = '') AND
+    (mark = $2 OR $2 = '') AND
+    (model = $3 OR $3 = '') AND
+    (year = $4 OR $4 = 0) AND
+    (owner_name = $5 OR $5 = '') AND
+    (owner_surname = $6 OR $6 = '') AND
+    (owner_patronymic = $7 OR $7 IS NULL );
