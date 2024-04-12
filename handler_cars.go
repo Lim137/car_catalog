@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Lim137/car_catalog/internal/database"
-	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
@@ -19,7 +18,9 @@ type CreateResponse struct {
 }
 
 func (apiCfg *apiConfig) handlerDeleteCarById(w http.ResponseWriter, r *http.Request) {
-	carIdStr := chi.URLParam(r, "carId")
+	url := r.URL
+	queryParams := url.Query()
+	carIdStr := queryParams.Get("carId")
 	carId, err := uuid.Parse(carIdStr)
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't parse car ID: %v", err))
@@ -82,7 +83,9 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 }
 
 func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Request) {
-	carIdStr := chi.URLParam(r, "carId")
+	url := r.URL
+	queryParams := url.Query()
+	carIdStr := queryParams.Get("carId")
 	carId, err := uuid.Parse(carIdStr)
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't parse car ID: %v", err))
