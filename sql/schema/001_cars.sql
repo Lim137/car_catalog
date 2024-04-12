@@ -9,7 +9,7 @@ CREATE TABLE cars (
     year INT NOT NULL,
     owner_name TEXT NOT NULL,
     owner_surname TEXT NOT NULL,
-    owner_patronymic TEXT
+    owner_patronymic TEXT NOT NULL
 );
 -- +goose Down
 DROP TABLE cars;

@@ -1,12 +1,10 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/Lim137/car_catalog/internal/database"
 	"github.com/google/uuid"
-	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -52,12 +50,7 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 			respondWithError(w, 500, fmt.Sprintf("Error getting car info from API: %v", err))
 			continue
 		}
-		ownerPatronymic := sql.NullString{}
-		if carInfoFromApi.Owner.Patronymic != "" {
-			ownerPatronymic.String = carInfoFromApi.Owner.Patronymic
-			ownerPatronymic.Valid = true
 
-		}
 		carIdInDB, err := apiCfg.DB.CreateCar(r.Context(), database.CreateCarParams{
 			ID:              uuid.New(),
 			CreatedAt:       time.Now(),
@@ -68,7 +61,7 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 			Year:            int32(carInfoFromApi.Year),
 			OwnerName:       carInfoFromApi.Owner.Name,
 			OwnerSurname:    carInfoFromApi.Owner.Surname,
-			OwnerPatronymic: ownerPatronymic,
+			OwnerPatronymic: carInfoFromApi.Owner.Patronymic,
 		})
 		if err != nil {
 			respondWithError(w, 500, fmt.Sprintf("Error creating car in DB: %v", err))
@@ -91,75 +84,46 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 		respondWithError(w, 400, fmt.Sprintf("Couldn't parse car ID: %v", err))
 		return
 	}
-	body, err := io.ReadAll(r.Body)
+	type parameters struct {
+		RegNum          string `json:"regNum"`
+		Mark            string `json:"mark"`
+		Model           string `json:"model"`
+		Year            int    `json:"year"`
+		OwnerName       string `json:"ownerName"`
+		OwnerSurname    string `json:"ownerSurname"`
+		OwnerPatronymic string `json:"ownerPatronymic"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{
+		RegNum:          "",
+		Mark:            "",
+		Model:           "",
+		Year:            -1,
+		OwnerName:       "",
+		OwnerSurname:    "",
+		OwnerPatronymic: "",
+	}
+	err = decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 500, fmt.Sprintf("Couldn't read request body: %v", err))
+		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
 		return
 	}
-	var requestBody map[string]interface{}
-	err = json.Unmarshal(body, &requestBody)
+	updatedCarInfo, err := apiCfg.DB.UpdateCarById(r.Context(), database.UpdateCarByIdParams{
+		ID:      carId,
+		Column2: params.RegNum,
+		Column3: params.Mark,
+		Column4: params.Model,
+		Column5: int32(params.Year),
+		Column6: params.OwnerName,
+		Column7: params.OwnerSurname,
+		Column8: params.OwnerPatronymic,
+	})
 	if err != nil {
-		respondWithError(w, 500, fmt.Sprintf("Couldn't unmarshal request body: %v", err))
+		respondWithError(w, 500, fmt.Sprintf("Error updating car in DB: %v", err))
 		return
 	}
-	for key, value := range requestBody {
-		if key == "regNum" {
-			err := apiCfg.DB.UpdateRegNumById(r.Context(), database.UpdateRegNumByIdParams{ID: carId, RegNum: value.(string)})
-			if err != nil {
-				respondWithError(w, 500, fmt.Sprintf("Couldn't update car regNum in DB: %v", err))
-			}
-			continue
-		}
-		if key == "mark" {
-			err := apiCfg.DB.UpdateMarkById(r.Context(), database.UpdateMarkByIdParams{ID: carId, Mark: value.(string)})
-			if err != nil {
-				respondWithError(w, 500, fmt.Sprintf("Couldn't update car mark in DB: %v", err))
-			}
-			continue
-		}
-		if key == "model" {
-			err := apiCfg.DB.UpdateModelById(r.Context(), database.UpdateModelByIdParams{ID: carId, Model: value.(string)})
-			if err != nil {
-				respondWithError(w, 500, fmt.Sprintf("Couldn't update car model in DB: %v", err))
-			}
-			continue
-		}
-		if key == "year" {
-			err := apiCfg.DB.UpdateYearById(r.Context(), database.UpdateYearByIdParams{ID: carId, Year: int32(value.(float64))})
-			if err != nil {
-				respondWithError(w, 500, fmt.Sprintf("Couldn't update the year of the car in DB: %v", err))
-			}
-			continue
-		}
-		if key == "ownerName" {
-			err := apiCfg.DB.UpdateOwnerNameById(r.Context(), database.UpdateOwnerNameByIdParams{ID: carId, OwnerName: value.(string)})
-			if err != nil {
-				respondWithError(w, 500, fmt.Sprintf("Couldn't update car owner name in DB: %v", err))
-			}
-			continue
-		}
-		if key == "ownerSurname" {
-			err := apiCfg.DB.UpdateOwnerSurnameById(r.Context(), database.UpdateOwnerSurnameByIdParams{ID: carId, OwnerSurname: value.(string)})
-			if err != nil {
-				respondWithError(w, 500, fmt.Sprintf("Couldn't update car owner surname in DB: %v", err))
-			}
-			continue
-		}
-		if key == "ownerPatronymic" {
-			ownerPatronymic := sql.NullString{}
-			if value != "" {
-				ownerPatronymic.String = value.(string)
-				ownerPatronymic.Valid = true
 
-			}
-			err := apiCfg.DB.UpdateOwnerPatronymicById(r.Context(), database.UpdateOwnerPatronymicByIdParams{ID: carId, OwnerPatronymic: ownerPatronymic})
-			if err != nil {
-				respondWithError(w, 500, fmt.Sprintf("Couldn't update car owner patronymic in DB: %v", err))
-			}
-			continue
-		}
-	}
-	respondWithJSON(w, 200, "Car was successfully updated")
+	respondWithJSON(w, 200, updatedCarInfo)
 }
 
 func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) {
@@ -171,15 +135,10 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 	yearStr := queryParams.Get("year")
 	ownerName := queryParams.Get("ownerName")
 	ownerSurname := queryParams.Get("ownerSurname")
-	ownerPatronymicStr := queryParams.Get("ownerPatronymic")
+	ownerPatronymic := queryParams.Get("ownerPatronymic")
 	pageSizeStr := queryParams.Get("pageSize")
 	pageStr := queryParams.Get("page")
-	ownerPatronymic := sql.NullString{}
-	if ownerPatronymicStr != "" {
-		ownerPatronymic.String = ownerPatronymicStr
-		ownerPatronymic.Valid = true
 
-	}
 	var year, page, pageSize int
 	var err error
 	if yearStr == "" {

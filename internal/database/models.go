@@ -5,7 +5,6 @@
 package database
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,5 +20,5 @@ type Car struct {
 	Year            int32
 	OwnerName       string
 	OwnerSurname    string
-	OwnerPatronymic sql.NullString
+	OwnerPatronymic string
 }

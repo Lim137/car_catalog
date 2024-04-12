@@ -7,7 +7,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,7 +28,7 @@ type CreateCarParams struct {
 	Year            int32
 	OwnerName       string
 	OwnerSurname    string
-	OwnerPatronymic sql.NullString
+	OwnerPatronymic string
 }
 
 func (q *Queries) CreateCar(ctx context.Context, arg CreateCarParams) (uuid.UUID, error) {
@@ -70,7 +69,7 @@ WHERE
     (year = $4 OR $4 = 0) AND
     (owner_name = $5 OR $5 = '') AND
     (owner_surname = $6 OR $6 = '') AND
-    (owner_patronymic = $7 OR $7 IS NULL )
+    (owner_patronymic = $7 OR $7 = '')
 LIMIT CASE WHEN $8 = -1 THEN NULL ELSE $8 END
 OFFSET ($9 - 1) * $8
 `
@@ -82,7 +81,7 @@ type GetCarsParams struct {
 	Year            int32
 	OwnerName       string
 	OwnerSurname    string
-	OwnerPatronymic sql.NullString
+	OwnerPatronymic string
 	Column8         interface{}
 	Column9         interface{}
 }
@@ -131,114 +130,76 @@ func (q *Queries) GetCars(ctx context.Context, arg GetCarsParams) ([]Car, error)
 	return items, nil
 }
 
-const updateMarkById = `-- name: UpdateMarkById :exec
+const updateCarById = `-- name: UpdateCarById :one
 UPDATE cars
-SET mark = $2, updated_at = NOW()
+SET
+    updated_at = NOW(),
+    reg_num = CASE
+                   WHEN $2 != '' THEN $2
+                   ELSE reg_num
+            END,
+    year = CASE
+               WHEN $5 != -1 THEN $5
+               ELSE year
+        END,
+    mark = CASE
+               WHEN $3 != '' THEN $3
+               ELSE mark
+        END,
+    model = CASE
+                WHEN $4 != '' THEN $4
+                ELSE model
+        END,
+    owner_name = CASE
+                WHEN $6 != '' THEN $6
+                ELSE owner_name
+        END,
+    owner_surname = CASE
+                WHEN $7 != '' THEN $7
+                ELSE owner_surname
+        END,
+    owner_patronymic = CASE
+                WHEN $8 != '' THEN $8
+                ELSE owner_patronymic
+        END
 WHERE id = $1
+RETURNING id, created_at, updated_at, reg_num, mark, model, year, owner_name, owner_surname, owner_patronymic
 `
 
-type UpdateMarkByIdParams struct {
-	ID   uuid.UUID
-	Mark string
+type UpdateCarByIdParams struct {
+	ID      uuid.UUID
+	Column2 interface{}
+	Column3 interface{}
+	Column4 interface{}
+	Column5 interface{}
+	Column6 interface{}
+	Column7 interface{}
+	Column8 interface{}
 }
 
-func (q *Queries) UpdateMarkById(ctx context.Context, arg UpdateMarkByIdParams) error {
-	_, err := q.db.ExecContext(ctx, updateMarkById, arg.ID, arg.Mark)
-	return err
-}
-
-const updateModelById = `-- name: UpdateModelById :exec
-UPDATE cars
-SET model = $2, updated_at = NOW()
-WHERE id = $1
-`
-
-type UpdateModelByIdParams struct {
-	ID    uuid.UUID
-	Model string
-}
-
-func (q *Queries) UpdateModelById(ctx context.Context, arg UpdateModelByIdParams) error {
-	_, err := q.db.ExecContext(ctx, updateModelById, arg.ID, arg.Model)
-	return err
-}
-
-const updateOwnerNameById = `-- name: UpdateOwnerNameById :exec
-UPDATE cars
-SET owner_name = $2, updated_at = NOW()
-WHERE id = $1
-`
-
-type UpdateOwnerNameByIdParams struct {
-	ID        uuid.UUID
-	OwnerName string
-}
-
-func (q *Queries) UpdateOwnerNameById(ctx context.Context, arg UpdateOwnerNameByIdParams) error {
-	_, err := q.db.ExecContext(ctx, updateOwnerNameById, arg.ID, arg.OwnerName)
-	return err
-}
-
-const updateOwnerPatronymicById = `-- name: UpdateOwnerPatronymicById :exec
-UPDATE cars
-SET owner_patronymic = $2, updated_at = NOW()
-WHERE id = $1
-`
-
-type UpdateOwnerPatronymicByIdParams struct {
-	ID              uuid.UUID
-	OwnerPatronymic sql.NullString
-}
-
-func (q *Queries) UpdateOwnerPatronymicById(ctx context.Context, arg UpdateOwnerPatronymicByIdParams) error {
-	_, err := q.db.ExecContext(ctx, updateOwnerPatronymicById, arg.ID, arg.OwnerPatronymic)
-	return err
-}
-
-const updateOwnerSurnameById = `-- name: UpdateOwnerSurnameById :exec
-UPDATE cars
-SET owner_surname = $2, updated_at = NOW()
-WHERE id = $1
-`
-
-type UpdateOwnerSurnameByIdParams struct {
-	ID           uuid.UUID
-	OwnerSurname string
-}
-
-func (q *Queries) UpdateOwnerSurnameById(ctx context.Context, arg UpdateOwnerSurnameByIdParams) error {
-	_, err := q.db.ExecContext(ctx, updateOwnerSurnameById, arg.ID, arg.OwnerSurname)
-	return err
-}
-
-const updateRegNumById = `-- name: UpdateRegNumById :exec
-UPDATE cars
-SET reg_num = $2, updated_at = NOW()
-WHERE id = $1
-`
-
-type UpdateRegNumByIdParams struct {
-	ID     uuid.UUID
-	RegNum string
-}
-
-func (q *Queries) UpdateRegNumById(ctx context.Context, arg UpdateRegNumByIdParams) error {
-	_, err := q.db.ExecContext(ctx, updateRegNumById, arg.ID, arg.RegNum)
-	return err
-}
-
-const updateYearById = `-- name: UpdateYearById :exec
-UPDATE cars
-SET year = $2, updated_at = NOW()
-WHERE id = $1
-`
-
-type UpdateYearByIdParams struct {
-	ID   uuid.UUID
-	Year int32
-}
-
-func (q *Queries) UpdateYearById(ctx context.Context, arg UpdateYearByIdParams) error {
-	_, err := q.db.ExecContext(ctx, updateYearById, arg.ID, arg.Year)
-	return err
+func (q *Queries) UpdateCarById(ctx context.Context, arg UpdateCarByIdParams) (Car, error) {
+	row := q.db.QueryRowContext(ctx, updateCarById,
+		arg.ID,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
+		arg.Column5,
+		arg.Column6,
+		arg.Column7,
+		arg.Column8,
+	)
+	var i Car
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RegNum,
+		&i.Mark,
+		&i.Model,
+		&i.Year,
+		&i.OwnerName,
+		&i.OwnerSurname,
+		&i.OwnerPatronymic,
+	)
+	return i, err
 }
