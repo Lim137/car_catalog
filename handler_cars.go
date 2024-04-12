@@ -169,13 +169,15 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 	ownerName := queryParams.Get("ownerName")
 	ownerSurname := queryParams.Get("ownerSurname")
 	ownerPatronymicStr := queryParams.Get("ownerPatronymic")
+	pageSizeStr := queryParams.Get("pageSize")
+	pageStr := queryParams.Get("page")
 	ownerPatronymic := sql.NullString{}
 	if ownerPatronymicStr != "" {
 		ownerPatronymic.String = ownerPatronymicStr
 		ownerPatronymic.Valid = true
 
 	}
-	var year int
+	var year, page, pageSize int
 	var err error
 	if yearStr == "" {
 		year = 0
@@ -183,6 +185,24 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 		year, err = strconv.Atoi(yearStr)
 		if err != nil {
 			respondWithError(w, 500, fmt.Sprintf("Couldn't parse year: %v", err))
+			return
+		}
+	}
+	if pageStr == "" {
+		page = 1
+	} else {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil {
+			respondWithError(w, 500, fmt.Sprintf("Couldn't parse page: %v", err))
+			return
+		}
+	}
+	if pageSizeStr == "" {
+		pageSize = -1
+	} else {
+		pageSize, err = strconv.Atoi(pageSizeStr)
+		if err != nil {
+			respondWithError(w, 500, fmt.Sprintf("Couldn't parse page: %v", err))
 			return
 		}
 	}
@@ -194,6 +214,8 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 		OwnerName:       ownerName,
 		OwnerSurname:    ownerSurname,
 		OwnerPatronymic: ownerPatronymic,
+		Column8:         int32(pageSize),
+		Column9:         int32(page),
 	})
 	if err != nil {
 		respondWithError(w, 500, fmt.Sprintf("Couldn't get cars from DB: %v", err))

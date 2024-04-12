@@ -52,4 +52,6 @@ WHERE
     (year = $4 OR $4 = 0) AND
     (owner_name = $5 OR $5 = '') AND
     (owner_surname = $6 OR $6 = '') AND
-    (owner_patronymic = $7 OR $7 IS NULL );
+    (owner_patronymic = $7 OR $7 IS NULL )
+LIMIT CASE WHEN $8 = -1 THEN NULL ELSE $8 END
+OFFSET ($9 - 1) * $8;

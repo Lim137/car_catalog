@@ -71,6 +71,8 @@ WHERE
     (owner_name = $5 OR $5 = '') AND
     (owner_surname = $6 OR $6 = '') AND
     (owner_patronymic = $7 OR $7 IS NULL )
+LIMIT CASE WHEN $8 = -1 THEN NULL ELSE $8 END
+OFFSET ($9 - 1) * $8
 `
 
 type GetCarsParams struct {
@@ -81,6 +83,8 @@ type GetCarsParams struct {
 	OwnerName       string
 	OwnerSurname    string
 	OwnerPatronymic sql.NullString
+	Column8         interface{}
+	Column9         interface{}
 }
 
 func (q *Queries) GetCars(ctx context.Context, arg GetCarsParams) ([]Car, error) {
@@ -92,6 +96,8 @@ func (q *Queries) GetCars(ctx context.Context, arg GetCarsParams) ([]Car, error)
 		arg.OwnerName,
 		arg.OwnerSurname,
 		arg.OwnerPatronymic,
+		arg.Column8,
+		arg.Column9,
 	)
 	if err != nil {
 		return nil, err
