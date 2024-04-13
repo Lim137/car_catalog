@@ -33,7 +33,7 @@ func main() {
 	apiCfg := apiConfig{
 		DB: database.New(conn),
 	}
-
+	log.Println("applying migrations...")
 	cmd := exec.Command("goose", "-dir", "sql/schema", "postgres", dbURL, "up")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -41,7 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't apply migrations: %v", err)
 	}
-
+	log.Println("migrations have been successfully applied")
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},

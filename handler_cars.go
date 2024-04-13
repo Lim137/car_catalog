@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Lim137/car_catalog/internal/database"
 	"github.com/google/uuid"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,11 +22,14 @@ func (apiCfg *apiConfig) handlerDeleteCarById(w http.ResponseWriter, r *http.Req
 	carIdStr := queryParams.Get("carId")
 	carId, err := uuid.Parse(carIdStr)
 	if err != nil {
+		log.Printf("Error parsing car ID: %v\nURL: %v", err, url)
 		respondWithError(w, 400, fmt.Sprintf("Couldn't parse car ID: %v", err))
 		return
 	}
+
 	err = apiCfg.DB.DeleteCarById(r.Context(), carId)
 	if err != nil {
+		log.Printf("Error deleting car from DB: %v", err)
 		respondWithError(w, 400, fmt.Sprintf("Couldn't delete car from DB: %v", err))
 		return
 	}
@@ -40,6 +44,7 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
+		log.Printf("Error parsing JSON: %v", err)
 		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
 		return
 	}
@@ -47,6 +52,7 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 	for _, value := range params.RegNums {
 		carInfoFromApi, err := getCarInfoFromApi(value)
 		if err != nil {
+			log.Printf("Error getting car info from API: %v", err)
 			respondWithError(w, 500, fmt.Sprintf("Error getting car info from API: %v", err))
 			continue
 		}
@@ -64,6 +70,7 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 			OwnerPatronymic: carInfoFromApi.Owner.Patronymic,
 		})
 		if err != nil {
+			log.Printf("Error creating car in DB: %v", err)
 			respondWithError(w, 500, fmt.Sprintf("Error creating car in DB: %v", err))
 			continue
 		}
@@ -81,6 +88,7 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 	carIdStr := queryParams.Get("carId")
 	carId, err := uuid.Parse(carIdStr)
 	if err != nil {
+		log.Printf("Error parsing car ID: %v\nURL: %v", err, url)
 		respondWithError(w, 400, fmt.Sprintf("Couldn't parse car ID: %v", err))
 		return
 	}
@@ -105,6 +113,7 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 	}
 	err = decoder.Decode(&params)
 	if err != nil {
+		log.Printf("Error parsing JSON: %v", err)
 		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
 		return
 	}
@@ -119,6 +128,7 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 		Column8: params.OwnerPatronymic,
 	})
 	if err != nil {
+		log.Printf("Error updating car in DB: %v", err)
 		respondWithError(w, 500, fmt.Sprintf("Error updating car in DB: %v", err))
 		return
 	}
@@ -146,6 +156,7 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 	} else {
 		year, err = strconv.Atoi(yearStr)
 		if err != nil {
+			log.Printf("Error parsing year: %v\nyearStr: %v", err, yearStr)
 			respondWithError(w, 500, fmt.Sprintf("Couldn't parse year: %v", err))
 			return
 		}
@@ -155,6 +166,7 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 	} else {
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
+			log.Printf("Error parsing page: %v\npageStr: %v", err, pageStr)
 			respondWithError(w, 500, fmt.Sprintf("Couldn't parse page: %v", err))
 			return
 		}
@@ -164,6 +176,7 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 	} else {
 		pageSize, err = strconv.Atoi(pageSizeStr)
 		if err != nil {
+			log.Printf("Error parsing page size: %v\npageSizeStr: %v", err, pageSizeStr)
 			respondWithError(w, 500, fmt.Sprintf("Couldn't parse page: %v", err))
 			return
 		}
@@ -180,6 +193,7 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 		Column9:         int32(page),
 	})
 	if err != nil {
+		log.Printf("Error getting cars from DB: %v", err)
 		respondWithError(w, 500, fmt.Sprintf("Couldn't get cars from DB: %v", err))
 		return
 	}
