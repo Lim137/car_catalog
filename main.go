@@ -98,7 +98,7 @@ func main() {
 	// @param regNum query string false "Car registration number"
 	// @param mark query string false "Car mark"
 	// @param model query string false "Car model"
-	// @param year query string false "Car year (expected to be an integer)"
+	// @param year query string false "Car year (It is expected that it will be possible to convert to integer)"
 	// @param ownerName query string false "Owner's name"
 	// @param ownerSurname query string false "Owner's surname"
 	// @param ownerPatronymic query string false "Owner's patronymic"
