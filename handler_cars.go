@@ -11,9 +11,15 @@ import (
 	"time"
 )
 
-type CreateResponse struct {
+type CreateSuccessfully struct {
 	RegNum string    `json:"regNum"`
+	Status string    `json:"status"`
 	ID     uuid.UUID `json:"id"`
+}
+type CreateError struct {
+	RegNum string `json:"regNum"`
+	Status string `json:"status"`
+	Error  string `json:"error"`
 }
 
 type MessageResponse struct {
@@ -52,12 +58,16 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, 400, fmt.Sprintf("Couldn't parse JSON: %v", err))
 		return
 	}
-	var addedCarsIds []CreateResponse
+	var result []interface{}
 	for _, value := range params.RegNums {
 		carInfoFromApi, err := getCarInfoFromApi(value)
 		if err != nil {
 			log.Printf("Error getting car info from API: %v", err)
-			respondWithError(w, 500, fmt.Sprintf("Couldn't get car info from API: %v", err))
+			result = append(result, CreateError{
+				RegNum: value,
+				Status: "failed",
+				Error:  fmt.Sprintf("Couldn't get car info from API: %v", err),
+			})
 			continue
 		}
 
@@ -75,15 +85,31 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 		})
 		if err != nil {
 			log.Printf("Error creating car in DB: %v", err)
-			respondWithError(w, 500, fmt.Sprintf("Couldn't create car in DB: %v", err))
+			result = append(result, CreateError{
+				RegNum: value,
+				Status: "failed",
+				Error:  fmt.Sprintf("Couldn't create car in DB: %v", err),
+			})
 			continue
 		}
-		addedCarsIds = append(addedCarsIds, CreateResponse{
+		result = append(result, CreateSuccessfully{
 			RegNum: carInfoFromApi.RegNum,
+			Status: "success",
 			ID:     carIdInDB,
 		})
 	}
-	respondWithJSON(w, 200, addedCarsIds)
+	hasErrors := false
+	for _, res := range result {
+		if _, ok := res.(CreateError); ok {
+			hasErrors = true
+			break
+		}
+	}
+	if hasErrors {
+		respondWithJSON(w, 500, result)
+	} else {
+		respondWithJSON(w, 200, result)
+	}
 }
 
 func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Request) {

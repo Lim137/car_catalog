@@ -59,15 +59,13 @@ func main() {
 	carRouter := chi.NewRouter()
 
 	// @summary Create a new car
-	// @description This endpoint creates a new car in the database. We make an api request, send the regNum of the required car and get all the data on it, which is then recorded in the database
+	// @description This endpoint creates a new car in the database. It takes an array of car registration numbers, makes API requests to fetch data about each car, and then adds them to the database.
 	// @tags cars
 	// @accept json
 	// @produce json
 	// @param request body []string true "Array of car registration numbers"
-	// @success 200 {array} CreateResponse "Car creation successful"
-	// @failure 400 {object} errRespond "Error parsing JSON"
-	// @failure 500 {object} errRespond "Error getting car info from API"
-	// @failure 500 {object} errRespond "Error creating car in DB"
+	// @success 200 {array} interface{} "An array containing information about each successfully added car"
+	// @failure 500 {array} CreateError "An array containing errors for cars that couldn't be added to the database"
 	carRouter.Post("/", apiCfg.handlerCreateCars)
 
 	// @summary Delete a car by ID
