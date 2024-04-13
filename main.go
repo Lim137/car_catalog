@@ -18,6 +18,10 @@ type apiConfig struct {
 	DB *database.Queries
 }
 
+// @title Car Catalog API
+// @version 1.0
+// @description This is an API for managing cars in a catalog.
+// @BasePath /cars
 func main() {
 	godotenv.Load(".env")
 	portString := os.Getenv("PORT")
@@ -53,11 +57,62 @@ func main() {
 	}))
 
 	carRouter := chi.NewRouter()
-	carRouter.Post("/", apiCfg.handlerCreateCars)
-	carRouter.Delete("/", apiCfg.handlerDeleteCarById)
-	carRouter.Put("/", apiCfg.handlerUpdateCarById)
-	carRouter.Get("/", apiCfg.handlerGetCars)
 
+	// @summary Create a new car
+	// @description This endpoint creates a new car in the database. We make an api request, send the regNum of the required car and get all the data on it, which is then recorded in the database
+	// @tags cars
+	// @accept json
+	// @produce json
+	// @param request body []string true "Array of car registration numbers"
+	// @success 200 {array} CreateResponse "Car creation successful"
+	// @failure 400 {object} errRespond "Error parsing JSON"
+	// @failure 500 {object} errRespond "Error getting car info from API"
+	// @failure 500 {object} errRespond "Error creating car in DB"
+	carRouter.Post("/", apiCfg.handlerCreateCars)
+
+	// @summary Delete a car by ID
+	// @description This endpoint deletes a car from the database by its ID in database.
+	// @tags cars
+	// @produce json
+	// @param carId query string true "CarID"
+	// @success 200 {object} MessageResponse "Car was successfully deleted"
+	// @failure 400 {object} errRespond "Error parsing request or car not found"
+	// @failure 500 {object} errRespond "Error deleting car from DB"
+	carRouter.Delete("/", apiCfg.handlerDeleteCarById)
+
+	// @summary Update a car by ID
+	// @description This endpoint updates a car in the database by its ID.
+	// @tags cars
+	// @accept json
+	// @produce json
+	// @param carId query string true "Car ID"
+	// @param request body parameters true "Car parameters that need to be updated"
+	// @success 200 {object} database.Car "Updated car information"
+	// @failure 400 {object} errRespond "Error parsing car ID"
+	// @failure 400 {object} errRespond "Error parsing JSON"
+	// @failure 500 {object} errRespond "Error updating car in DB"
+	carRouter.Put("/", apiCfg.handlerUpdateCarById)
+
+	// @summary Get cars
+	// @description This endpoint retrieves cars from the catalog based on specified parameters.
+	// @tags cars
+	// @produce json
+	// @param regNum query string false "Car registration number"
+	// @param mark query string false "Car mark"
+	// @param model query string false "Car model"
+	// @param year query string false "Car year (expected to be an integer)"
+	// @param ownerName query string false "Owner's name"
+	// @param ownerSurname query string false "Owner's surname"
+	// @param ownerPatronymic query string false "Owner's patronymic"
+	// @param pageSize query string false "Page size"
+	// @param page query string false "Page number"
+	// @success 200 {array} database.Car "List of cars"
+	// @success 404 {object} MessageResponse "Cars with such parameters not found"
+	// @failure 500 {object} errRespond "Error parsing year"
+	// @failure 500 {object} errRespond "Error parsing page"
+	// @failure 500 {object} errRespond "Error parsing page size"
+	// @failure 500 {object} errRespond "Error getting cars from DB"
+	carRouter.Get("/", apiCfg.handlerGetCars)
 	router.Mount("/cars", carRouter)
 
 	srv := &http.Server{
