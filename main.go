@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 )
 
 type apiConfig struct {
@@ -32,6 +33,15 @@ func main() {
 	apiCfg := apiConfig{
 		DB: database.New(conn),
 	}
+
+	cmd := exec.Command("goose", "-dir", "sql/schema", "postgres", dbURL, "up")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		log.Fatalf("Couldn't apply migrations: %v", err)
+	}
+
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
@@ -41,12 +51,15 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+
 	carRouter := chi.NewRouter()
 	carRouter.Post("/", apiCfg.handlerCreateCars)
 	carRouter.Delete("/", apiCfg.handlerDeleteCarById)
 	carRouter.Put("/", apiCfg.handlerUpdateCarById)
 	carRouter.Get("/", apiCfg.handlerGetCars)
+
 	router.Mount("/cars", carRouter)
+
 	srv := &http.Server{
 		Handler: router,
 		Addr:    ":" + portString,
@@ -54,6 +67,6 @@ func main() {
 	log.Println("Server is running on port " + portString)
 	err = srv.ListenAndServe()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Couldn't start server: %v", err)
 	}
 }
