@@ -1,0 +1,68 @@
+basePath: /cars
+definitions:
+  database.Car:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      mark:
+        type: string
+      model:
+        type: string
+      ownerName:
+        type: string
+      ownerPatronymic:
+        type: string
+      ownerSurname:
+        type: string
+      regNum:
+        type: string
+      updatedAt:
+        type: string
+      year:
+        type: integer
+    type: object
+  main.CreateError:
+    properties:
+      error:
+        type: string
+      regNum:
+        type: string
+      status:
+        type: string
+    type: object
+  main.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  main.carParameters:
+    properties:
+      mark:
+        type: string
+      model:
+        type: string
+      ownerName:
+        type: string
+      ownerPatronymic:
+        type: string
+      ownerSurname:
+        type: string
+      regNum:
+        type: string
+      year:
+        type: integer
+    type: object
+  main.errRespond:
+    properties:
+      error:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is an API for managing cars in a catalog.
+  title: Car Catalog API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

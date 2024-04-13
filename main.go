@@ -3,11 +3,13 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/Lim137/car_catalog/docs"
 	"github.com/Lim137/car_catalog/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
 	"os"
@@ -91,26 +93,29 @@ func main() {
 	// @failure 500 {object} errRespond "Error updating car in DB"
 	carRouter.Put("/", apiCfg.handlerUpdateCarById)
 
-	// @summary Get cars
-	// @description This endpoint retrieves cars from the catalog based on specified parameters.
-	// @tags cars
-	// @produce json
-	// @param regNum query string false "Car registration number"
-	// @param mark query string false "Car mark"
-	// @param model query string false "Car model"
-	// @param year query string false "Car year (It is expected that it will be possible to convert to integer)"
-	// @param ownerName query string false "Owner's name"
-	// @param ownerSurname query string false "Owner's surname"
-	// @param ownerPatronymic query string false "Owner's patronymic"
-	// @param pageSize query string false "Page size"
-	// @param page query string false "Page number"
-	// @success 200 {array} database.Car "List of cars"
-	// @success 404 {object} MessageResponse "Cars with such parameters not found"
-	// @failure 500 {object} errRespond "Error parsing year"
-	// @failure 500 {object} errRespond "Error parsing page"
-	// @failure 500 {object} errRespond "Error parsing page size"
-	// @failure 500 {object} errRespond "Error getting cars from DB"
+	//	@summary Get cars
+	//	@description This endpoint retrieves cars from the catalog based on specified parameters.
+	//	@tags cars
+	//	@produce json
+	//	@param regNum query string false "Car registration number"
+	//	@param mark query string false "Car mark"
+	//	@param model query string false "Car model"
+	//	@param year query string false "Car year (It is expected that it will be possible to convert to integer)"
+	// 	@param ownerName query string false "Owner's name"
+	// 	@param ownerSurname query string false "Owner's surname"
+	// 	@param ownerPatronymic query string false "Owner's patronymic"
+	// 	@param pageSize query string false "Page size"
+	// 	@param page query string false "Page number"
+	// 	@success 200 {array} database.Car "List of cars"
+	// 	@success 404 {object} MessageResponse "Cars with such parameters not found"
+	// 	@failure 500 {object} errRespond "Error parsing year"
+	// 	@failure 500 {object} errRespond "Error parsing page"
+	// 	@failure 500 {object} errRespond "Error parsing page size"
+	// 	@failure 500 {object} errRespond "Error getting cars from DB"
 	carRouter.Get("/", apiCfg.handlerGetCars)
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), //The url pointing to API definition
+	))
 	router.Mount("/cars", carRouter)
 
 	srv := &http.Server{

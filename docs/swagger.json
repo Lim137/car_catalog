@@ -1,0 +1,104 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is an API for managing cars in a catalog.",
+        "title": "Car Catalog API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/cars",
+    "paths": {},
+    "definitions": {
+        "database.Car": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mark": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "ownerName": {
+                    "type": "string"
+                },
+                "ownerPatronymic": {
+                    "type": "string"
+                },
+                "ownerSurname": {
+                    "type": "string"
+                },
+                "regNum": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "main.CreateError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "regNum": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.carParameters": {
+            "type": "object",
+            "properties": {
+                "mark": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "ownerName": {
+                    "type": "string"
+                },
+                "ownerPatronymic": {
+                    "type": "string"
+                },
+                "ownerSurname": {
+                    "type": "string"
+                },
+                "regNum": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "main.errRespond": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

@@ -26,6 +26,28 @@ type MessageResponse struct {
 	Message string `json:"message"`
 }
 
+type errRespond struct {
+	Error string `json:"error"`
+}
+
+type carParameters struct {
+	RegNum          string `json:"regNum"`
+	Mark            string `json:"mark"`
+	Model           string `json:"model"`
+	Year            int    `json:"year"`
+	OwnerName       string `json:"ownerName"`
+	OwnerSurname    string `json:"ownerSurname"`
+	OwnerPatronymic string `json:"ownerPatronymic"`
+}
+
+// @summary Delete a car by ID
+// @description This endpoint deletes a car from the database by its ID in database.
+// @tags cars
+// @produce json
+// @param carId query string true "CarID"
+// @success 200 {object} MessageResponse "Car was successfully deleted"
+// @failure 400 {object} errRespond "Error parsing request"
+// @failure 500 {object} errRespond "Error deleting car from DB"
 func (apiCfg *apiConfig) handlerDeleteCarById(w http.ResponseWriter, r *http.Request) {
 	url := r.URL
 	queryParams := url.Query()
@@ -33,29 +55,38 @@ func (apiCfg *apiConfig) handlerDeleteCarById(w http.ResponseWriter, r *http.Req
 	carId, err := uuid.Parse(carIdStr)
 	if err != nil {
 		log.Printf("Error parsing car ID: %v\nURL: %v", err, url)
-		respondWithError(w, 400, fmt.Sprintf("Couldn't parse car ID: %v", err))
+		respondWithJSON(w, 400, errRespond{Error: fmt.Sprintf("Couldn't parse car ID: %v", err)})
 		return
 	}
 
 	err = apiCfg.DB.DeleteCarById(r.Context(), carId)
 	if err != nil {
 		log.Printf("Error deleting car from DB: %v", err)
-		respondWithError(w, 500, fmt.Sprintf("Couldn't delete car from DB: %v", err))
+		respondWithJSON(w, 500, errRespond{Error: fmt.Sprintf("Couldn't delete car from DB: %v", err)})
 		return
 	}
 	respondWithJSON(w, 200, MessageResponse{Message: "Car was successfully deleted"})
 }
 
+// @summary Create a new car
+// @description This endpoint creates a new car in the database. It takes an array of car registration numbers, makes API requests to fetch data about each car, and then adds them to the database.
+// @tags cars
+// @accept json
+// @produce json
+// @param request body []string true "Array of car registration numbers"
+// @success 200 {array} interface{} "An array containing information about each successfully added car"
+// @failure 500 {array} CreateError "An array containing errors for cars that couldn't be added to the database"
+// @failure 400 {object} errRespond "Error parsing request"
 func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
+	type parametersForCreateCars struct {
 		RegNums []string `json:"regNums"`
 	}
 	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
+	params := parametersForCreateCars{}
 	err := decoder.Decode(&params)
 	if err != nil {
 		log.Printf("Error parsing JSON: %v", err)
-		respondWithError(w, 400, fmt.Sprintf("Couldn't parse JSON: %v", err))
+		respondWithJSON(w, 400, errRespond{Error: fmt.Sprintf("Couldn't parse JSON: %v", err)})
 		return
 	}
 	var result []interface{}
@@ -112,6 +143,17 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// @summary Update a car by ID
+// @description This endpoint updates a car in the database by its ID.
+// @tags cars
+// @accept json
+// @produce json
+// @param carId query string true "Car ID"
+// @param request body carParameters true "Car parameters that need to be updated"
+// @success 200 {object} database.Car "Updated car information"
+// @failure 400 {object} errRespond "Error parsing car ID"
+// @failure 400 {object} errRespond "Error parsing JSON"
+// @failure 500 {object} errRespond "Error updating car in DB"
 func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Request) {
 	url := r.URL
 	queryParams := url.Query()
@@ -119,20 +161,12 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 	carId, err := uuid.Parse(carIdStr)
 	if err != nil {
 		log.Printf("Error parsing car ID: %v\nURL: %v", err, url)
-		respondWithError(w, 400, fmt.Sprintf("Couldn't parse car ID: %v", err))
+		respondWithJSON(w, 400, errRespond{Error: fmt.Sprintf("Couldn't parse car ID: %v", err)})
 		return
 	}
-	type parameters struct {
-		RegNum          string `json:"regNum"`
-		Mark            string `json:"mark"`
-		Model           string `json:"model"`
-		Year            int    `json:"year"`
-		OwnerName       string `json:"ownerName"`
-		OwnerSurname    string `json:"ownerSurname"`
-		OwnerPatronymic string `json:"ownerPatronymic"`
-	}
+
 	decoder := json.NewDecoder(r.Body)
-	params := parameters{
+	params := carParameters{
 		RegNum:          "",
 		Mark:            "",
 		Model:           "",
@@ -144,7 +178,7 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 	err = decoder.Decode(&params)
 	if err != nil {
 		log.Printf("Error parsing JSON: %v", err)
-		respondWithError(w, 400, fmt.Sprintf("Couldn't parse JSON: %v", err))
+		respondWithJSON(w, 400, errRespond{Error: fmt.Sprintf("Couldn't parse JSON: %v", err)})
 		return
 	}
 	updatedCarInfo, err := apiCfg.DB.UpdateCarById(r.Context(), database.UpdateCarByIdParams{
@@ -159,13 +193,32 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 	})
 	if err != nil {
 		log.Printf("Error updating car in DB: %v", err)
-		respondWithError(w, 500, fmt.Sprintf("Couldn't update car in DB: %v", err))
+		respondWithJSON(w, 500, errRespond{Error: fmt.Sprintf("Couldn't update car in DB: %v", err)})
 		return
 	}
 
 	respondWithJSON(w, 200, updatedCarInfo)
 }
 
+// @summary Get cars
+// @description This endpoint retrieves cars from the catalog based on specified parameters.
+// @tags cars
+// @produce json
+// @param regNum query string false "Car registration number"
+// @param mark query string false "Car mark"
+// @param model query string false "Car model"
+// @param year query string false "Car year (It is expected that it will be possible to convert to integer)"
+// @param ownerName query string false "Owner's name"
+// @param ownerSurname query string false "Owner's surname"
+// @param ownerPatronymic query string false "Owner's patronymic"
+// @param pageSize query string false "Page size"
+// @param page query string false "Page number"
+// @success 200 {array} database.Car "List of cars"
+// @success 404 {object} MessageResponse "Cars with such parameters not found"
+// @failure 500 {object} errRespond "Error parsing year"
+// @failure 500 {object} errRespond "Error parsing page"
+// @failure 500 {object} errRespond "Error parsing page size"
+// @failure 500 {object} errRespond "Error getting cars from DB"
 func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) {
 	url := r.URL
 	queryParams := url.Query()
@@ -187,7 +240,7 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 		year, err = strconv.Atoi(yearStr)
 		if err != nil {
 			log.Printf("Error parsing year: %v\nyearStr: %v", err, yearStr)
-			respondWithError(w, 500, fmt.Sprintf("Couldn't parse year: %v", err))
+			respondWithJSON(w, 500, errRespond{Error: fmt.Sprintf("Couldn't parse year: %v", err)})
 			return
 		}
 	}
@@ -197,7 +250,7 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
 			log.Printf("Error parsing page: %v\npageStr: %v", err, pageStr)
-			respondWithError(w, 500, fmt.Sprintf("Couldn't parse page: %v", err))
+			respondWithJSON(w, 500, errRespond{Error: fmt.Sprintf("Couldn't parse page: %v", err)})
 			return
 		}
 	}
@@ -207,7 +260,7 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 		pageSize, err = strconv.Atoi(pageSizeStr)
 		if err != nil {
 			log.Printf("Error parsing page size: %v\npageSizeStr: %v", err, pageSizeStr)
-			respondWithError(w, 500, fmt.Sprintf("Couldn't parse page size: %v", err))
+			respondWithJSON(w, 500, errRespond{Error: fmt.Sprintf("Couldn't parse page size: %v", err)})
 			return
 		}
 	}
@@ -224,7 +277,7 @@ func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) 
 	})
 	if err != nil {
 		log.Printf("Error getting cars from DB: %v", err)
-		respondWithError(w, 500, fmt.Sprintf("Couldn't get cars from DB: %v", err))
+		respondWithJSON(w, 500, errRespond{Error: fmt.Sprintf("Couldn't get cars from DB: %v", err)})
 		return
 	}
 	if len(cars) == 0 {
