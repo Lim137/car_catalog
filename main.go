@@ -25,7 +25,10 @@ type apiConfig struct {
 // @description This is an API for managing cars in a catalog.
 // @BasePath /cars
 func main() {
-	godotenv.Load(".env")
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
 	portString := os.Getenv("PORT")
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
