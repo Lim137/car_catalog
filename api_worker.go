@@ -25,7 +25,11 @@ type People struct {
 func getCarInfoFromApi(regNum string) (CarInfo, error) {
 	params := url.Values{}
 	params.Add("regNum", regNum)
-	apiUrl := os.Getenv("API_URL") + params.Encode()
+	apiURLWithoutParams := os.Getenv("API_URL")
+	if string(apiURLWithoutParams[len(apiURLWithoutParams)-1]) != "?" {
+		apiURLWithoutParams = apiURLWithoutParams + "?"
+	}
+	apiUrl := apiURLWithoutParams + params.Encode()
 	response, err := http.Get(apiUrl)
 	if err != nil {
 		return CarInfo{}, fmt.Errorf("failed api request: %v", err)
