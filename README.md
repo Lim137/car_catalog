@@ -12,7 +12,7 @@
 7. Ввести в командную строку ./<folder_name>.exe. <folder_name> заменить на название папки с проектом <br>
 8. После этого запустятся миграции в БД (в БД, которая была указана в .env файле, появится таблица cars), а потом запустится сам сервер. Также, если перейти на сайт <SERVER_URL_from_dot_env>:<PORT_from_dot_env>/swagger/index.html можно будет попасть на страницу swagger ui. Если перейти на сайт <SERVER_URL_from_dot_env>:<PORT_from_dot_env>/swagger/doc.json, то можно увидеть swagger документацию в формате JSON (или можно открыть в самом проекте папку docs и там будет файл swagger.json и swagger.yaml)<br>
 
-
+<br>
 
 Instructions for launching the project:<br>
 1. Have the Go language installed <br>
