@@ -14,7 +14,242 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {},
+    "paths": {
+        "/": {
+            "get": {
+                "description": "This endpoint retrieves cars from the catalog based on specified parameters.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cars"
+                ],
+                "summary": "Get cars",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Car registration number",
+                        "name": "regNum",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Car mark",
+                        "name": "mark",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Car model",
+                        "name": "model",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Car year (It is expected that it will be possible to convert to integer)",
+                        "name": "year",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Owner's name",
+                        "name": "ownerName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Owner's surname",
+                        "name": "ownerSurname",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Owner's patronymic",
+                        "name": "ownerPatronymic",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page size",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of cars",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Car"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Cars with such parameters not found",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error getting cars from DB",
+                        "schema": {
+                            "$ref": "#/definitions/main.errRespond"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "This endpoint updates a car in the database by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cars"
+                ],
+                "summary": "Update a car by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Car ID",
+                        "name": "carId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Car parameters that need to be updated",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.carParameters"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated car information",
+                        "schema": {
+                            "$ref": "#/definitions/database.Car"
+                        }
+                    },
+                    "400": {
+                        "description": "Error parsing JSON",
+                        "schema": {
+                            "$ref": "#/definitions/main.errRespond"
+                        }
+                    },
+                    "500": {
+                        "description": "Error updating car in DB",
+                        "schema": {
+                            "$ref": "#/definitions/main.errRespond"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "This endpoint creates a new car in the database. It takes an array of car registration numbers, makes API requests to fetch data about each car, and then adds them to the database.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cars"
+                ],
+                "summary": "Create a new car",
+                "parameters": [
+                    {
+                        "description": "Array of car registration numbers",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "An array containing information about each successfully added car",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.CreateSuccessfully"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error parsing request",
+                        "schema": {
+                            "$ref": "#/definitions/main.errRespond"
+                        }
+                    },
+                    "500": {
+                        "description": "An array containing errors for cars that couldn't be added to the database",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.CreateError"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "This endpoint deletes a car from the database by its ID in database.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cars"
+                ],
+                "summary": "Delete a car by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CarID",
+                        "name": "carId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Car was successfully deleted",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Error parsing request",
+                        "schema": {
+                            "$ref": "#/definitions/main.errRespond"
+                        }
+                    },
+                    "500": {
+                        "description": "Error deleting car from DB",
+                        "schema": {
+                            "$ref": "#/definitions/main.errRespond"
+                        }
+                    }
+                }
+            }
+        }
+    },
     "definitions": {
         "database.Car": {
             "type": "object",
@@ -55,6 +290,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
+                    "type": "string"
+                },
+                "regNum": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.CreateSuccessfully": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string"
                 },
                 "regNum": {

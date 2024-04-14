@@ -32,6 +32,15 @@ definitions:
       status:
         type: string
     type: object
+  main.CreateSuccessfully:
+    properties:
+      id:
+        type: string
+      regNum:
+        type: string
+      status:
+        type: string
+    type: object
   main.MessageResponse:
     properties:
       message:
@@ -64,5 +73,166 @@ info:
   description: This is an API for managing cars in a catalog.
   title: Car Catalog API
   version: "1.0"
-paths: {}
+paths:
+  /:
+    delete:
+      description: This endpoint deletes a car from the database by its ID in database.
+      parameters:
+      - description: CarID
+        in: query
+        name: carId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Car was successfully deleted
+          schema:
+            $ref: '#/definitions/main.MessageResponse'
+        "400":
+          description: Error parsing request
+          schema:
+            $ref: '#/definitions/main.errRespond'
+        "500":
+          description: Error deleting car from DB
+          schema:
+            $ref: '#/definitions/main.errRespond'
+      summary: Delete a car by ID
+      tags:
+      - cars
+    get:
+      description: This endpoint retrieves cars from the catalog based on specified
+        parameters.
+      parameters:
+      - description: Car registration number
+        in: query
+        name: regNum
+        type: string
+      - description: Car mark
+        in: query
+        name: mark
+        type: string
+      - description: Car model
+        in: query
+        name: model
+        type: string
+      - description: Car year (It is expected that it will be possible to convert
+          to integer)
+        in: query
+        name: year
+        type: string
+      - description: Owner's name
+        in: query
+        name: ownerName
+        type: string
+      - description: Owner's surname
+        in: query
+        name: ownerSurname
+        type: string
+      - description: Owner's patronymic
+        in: query
+        name: ownerPatronymic
+        type: string
+      - description: Page size
+        in: query
+        name: pageSize
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of cars
+          schema:
+            items:
+              $ref: '#/definitions/database.Car'
+            type: array
+        "404":
+          description: Cars with such parameters not found
+          schema:
+            $ref: '#/definitions/main.MessageResponse'
+        "500":
+          description: Error getting cars from DB
+          schema:
+            $ref: '#/definitions/main.errRespond'
+      summary: Get cars
+      tags:
+      - cars
+    post:
+      consumes:
+      - application/json
+      description: This endpoint creates a new car in the database. It takes an array
+        of car registration numbers, makes API requests to fetch data about each car,
+        and then adds them to the database.
+      parameters:
+      - description: Array of car registration numbers
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: An array containing information about each successfully added
+            car
+          schema:
+            items:
+              $ref: '#/definitions/main.CreateSuccessfully'
+            type: array
+        "400":
+          description: Error parsing request
+          schema:
+            $ref: '#/definitions/main.errRespond'
+        "500":
+          description: An array containing errors for cars that couldn't be added
+            to the database
+          schema:
+            items:
+              $ref: '#/definitions/main.CreateError'
+            type: array
+      summary: Create a new car
+      tags:
+      - cars
+    put:
+      consumes:
+      - application/json
+      description: This endpoint updates a car in the database by its ID.
+      parameters:
+      - description: Car ID
+        in: query
+        name: carId
+        required: true
+        type: string
+      - description: Car parameters that need to be updated
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.carParameters'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated car information
+          schema:
+            $ref: '#/definitions/database.Car'
+        "400":
+          description: Error parsing JSON
+          schema:
+            $ref: '#/definitions/main.errRespond'
+        "500":
+          description: Error updating car in DB
+          schema:
+            $ref: '#/definitions/main.errRespond'
+      summary: Update a car by ID
+      tags:
+      - cars
 swagger: "2.0"

@@ -40,14 +40,15 @@ type carParameters struct {
 	OwnerPatronymic string `json:"ownerPatronymic"`
 }
 
-// @summary Delete a car by ID
-// @description This endpoint deletes a car from the database by its ID in database.
-// @tags cars
-// @produce json
-// @param carId query string true "CarID"
-// @success 200 {object} MessageResponse "Car was successfully deleted"
-// @failure 400 {object} errRespond "Error parsing request"
-// @failure 500 {object} errRespond "Error deleting car from DB"
+//@summary Delete a car by ID
+//@description This endpoint deletes a car from the database by its ID in database.
+//@tags cars
+//@produce json
+//@param carId query string true "CarID"
+//@success 200 {object} MessageResponse "Car was successfully deleted"
+//@failure 400 {object} errRespond "Error parsing request"
+//@failure 500 {object} errRespond "Error deleting car from DB"
+//@Router / [delete]
 func (apiCfg *apiConfig) handlerDeleteCarById(w http.ResponseWriter, r *http.Request) {
 	url := r.URL
 	queryParams := url.Query()
@@ -74,9 +75,10 @@ func (apiCfg *apiConfig) handlerDeleteCarById(w http.ResponseWriter, r *http.Req
 // @accept json
 // @produce json
 // @param request body []string true "Array of car registration numbers"
-// @success 200 {array} interface{} "An array containing information about each successfully added car"
+// @success 200 {array} CreateSuccessfully "An array containing information about each successfully added car"
 // @failure 500 {array} CreateError "An array containing errors for cars that couldn't be added to the database"
 // @failure 400 {object} errRespond "Error parsing request"
+// @Router / [post]
 func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Request) {
 	type parametersForCreateCars struct {
 		RegNums []string `json:"regNums"`
@@ -154,6 +156,7 @@ func (apiCfg *apiConfig) handlerCreateCars(w http.ResponseWriter, r *http.Reques
 // @failure 400 {object} errRespond "Error parsing car ID"
 // @failure 400 {object} errRespond "Error parsing JSON"
 // @failure 500 {object} errRespond "Error updating car in DB"
+// @Router / [put]
 func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Request) {
 	url := r.URL
 	queryParams := url.Query()
@@ -219,6 +222,7 @@ func (apiCfg *apiConfig) handlerUpdateCarById(w http.ResponseWriter, r *http.Req
 // @failure 500 {object} errRespond "Error parsing page"
 // @failure 500 {object} errRespond "Error parsing page size"
 // @failure 500 {object} errRespond "Error getting cars from DB"
+// @Router / [get]
 func (apiCfg *apiConfig) handlerGetCars(w http.ResponseWriter, r *http.Request) {
 	url := r.URL
 	queryParams := url.Query()
